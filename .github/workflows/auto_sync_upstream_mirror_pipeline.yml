@@ -41,4 +41,4 @@ jobs:
           git merge upstream/main --no-edit --allow-unrelated-histories || echo "Merge conflict detected"
           
           # 4. 使用带权限的 PAT 把合并后的结果推回你的 GitHub
-          git push https://x-access-token:${MY_PAT}@github.com/hyp3365/3335x-ui.git main
+          git push https://x-access-token:${MY_PAT}@github.com/hyp3365/ss-ui.git main
