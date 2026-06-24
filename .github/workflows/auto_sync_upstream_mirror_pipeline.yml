@@ -1,0 +1,44 @@
+name: "Automated Upstream Repository Synchronization Pipeline"
+
+on:
+  schedule:
+    - cron: '0 0 * * *' # 24小时同步一次
+  workflow_dispatch:
+
+jobs:
+  execute_secure_sync:
+    name: "Execute Secure Sync Process"
+    runs-on: ubuntu-latest
+    if: ${{ github.repository == 'hyp3365/ss-ui' }}
+
+    steps:
+      # Step 1: 必须完整检出你自己的仓库
+      - name: Checkout My Repo
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0 # 必须获取完整历史，否则无法正常 merge
+
+      # Step 2: 配置 Git 机器人身份
+      - name: Set up Git Config
+        run: |
+          git config --global user.name "github-actions[bot]"
+          git config --global user.email "41898282+github-actions[bot]@users.noreply.github.com"
+
+      # Step 3: 安全合并，绝不覆盖自己
+      - name: Fetch and Merge Upstream
+        env:
+          MY_PAT: ${{ secrets.SYNC_PAT }}
+        run: |
+          # 1. 添加原作者的远程仓库，命名为 upstream
+          git remote add upstream https://github.com/alireza0/s-ui.git
+          git fetch upstream main
+          
+          # 2. 切换并确保在你的 main 分支上
+          git checkout main
+          
+          # 3. 将原作者的 main 分支合并到你的 main 分支（允许合并不相关的历史）
+          # --no-edit 表示自动接受合并信息，不会卡住
+          git merge upstream/main --no-edit --allow-unrelated-histories || echo "Merge conflict detected"
+          
+          # 4. 使用带权限的 PAT 把合并后的结果推回你的 GitHub
+          git push https://x-access-token:${MY_PAT}@github.com/hyp3365/3335x-ui.git main
